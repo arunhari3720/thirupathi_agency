@@ -1,10 +1,180 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import BrandStrip from '../components/BrandStrip'
 import { products } from '../data/products'
 
-const featured = products.slice(0, 5)
+// const featured = products.slice(0, 5)
+const featured = [6, 10, 18, 1, 51, 26]
+  .map((index) => products[index])
+  .filter(Boolean);
+
+const allProducts = products.filter((p) => typeof p.image === 'string' && p.image.trim().length > 0);
+const marqueeProducts = [...allProducts];
+
+/* Cloudinary images-a chinna size + auto format-ku maathum.
+   Vera sites (mugi, koyas) URL-a appadiye vittudum. */
+const optimize = (url, w = 500) => {
+  if (
+    url &&
+    url.includes('res.cloudinary.com') &&
+    url.includes('/upload/') &&
+    !url.includes('/upload/f_auto')
+  ) {
+    return url.replace('/upload/', `/upload/f_auto,q_auto,w_${w}/`)
+  }
+  return url
+}
+
+/* Skeleton + fade-in image */
+function SmartImg({ src, fallback, alt, w = 500, eager = false }) {
+  const ref = useRef(null)
+  const [loaded, setLoaded] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const [usingFallback, setUsingFallback] = useState(false)
+  const imageSrc = usingFallback && fallback ? fallback : optimize(src, w)
+
+  useEffect(() => {
+    const img = ref.current
+    if (img && img.complete && img.naturalWidth > 0) setLoaded(true)
+  }, [])
+
+  return (
+    <img
+      ref={ref}
+      className={`smart-img${loaded ? ' is-loaded' : ''}${failed ? ' is-failed' : ''}`}
+      src={imageSrc}
+      alt={alt}
+      loading={eager ? 'eager' : undefined}
+      decoding="async"
+      onLoad={() => setLoaded(true)}
+      onError={() => {
+        // First try original URL if Cloudinary optimization failed.
+        if (!usingFallback && src && imageSrc !== src) {
+          ref.current.src = src
+          return
+        }
+
+        // If original URL also fails, try the product's fallback URL.
+        if (fallback && !usingFallback) {
+          setUsingFallback(true)
+          setLoaded(false)
+          return
+        }
+
+        setFailed(true)
+        setLoaded(true)
+      }}
+    />
+  )
+}
 
 export default function Home() {
+  const trackRef = useRef(null)
+
+  useEffect(() => {
+    document.title = 'Thirupathi Agency | Quality Products & Trusted Supply'
+
+    let canonical = document.querySelector('link[rel="canonical"]')
+
+    if (!canonical) {
+      canonical = document.createElement('link')
+      canonical.setAttribute('rel', 'canonical')
+      document.head.appendChild(canonical)
+    }
+
+    canonical.setAttribute(
+      'href',
+      'https://thirupathiagency.netlify.app/#/'
+    )
+  }, [])
+
+  /* Background-la ella images-um preload (marquee-ku vara munnadiye cache aagidum) */
+  useEffect(() => {
+    // orbit images first, apuram marquee images
+    featured.forEach((p) => {
+      const img = new Image()
+      img.src = optimize(p.image, 400)
+    })
+
+    const run = () => {
+      allProducts.forEach((p) => {
+        const img = new Image()
+        img.src = optimize(p.image, 500)
+      })
+    }
+
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(run, { timeout: 1500 })
+      return () => window.cancelIdleCallback && window.cancelIdleCallback(id)
+    } else {
+      const t = setTimeout(run, 400)
+      return () => clearTimeout(t)
+    }
+  }, [])
+
+  /* JS-driven marquee: continuously scrolls on desktop and mobile */
+  useEffect(() => {
+    const track = trackRef.current
+    if (!track) return
+
+    const wrap = track.parentElement
+    let x = 0
+    let raf = 0
+    let paused = false
+    let last = 0
+    let halfWidth = 0
+    const SPEED = 42
+
+    const measure = () => {
+      // Exact width of the first product set: position of the first duplicated card.
+      const firstDuplicate = track.children[marqueeProducts.length]
+      const firstCard = track.children[0]
+      if (firstDuplicate && firstCard) {
+        halfWidth = firstDuplicate.offsetLeft - firstCard.offsetLeft
+      }
+    }
+
+    measure()
+    const resizeObserver = new ResizeObserver(measure)
+    resizeObserver.observe(track)
+    window.addEventListener('resize', measure)
+
+    const tick = (now) => {
+      if (!last) last = now
+      const dt = Math.min(now - last, 50) / 1000
+      last = now
+
+      if (!paused && halfWidth > 0) {
+        x -= SPEED * dt
+
+        // Keep x within one full product-set width for a seamless loop.
+        if (-x >= halfWidth) x += halfWidth
+
+        track.style.transform = `translate3d(${x}px, 0, 0)`
+      }
+
+      raf = requestAnimationFrame(tick)
+    }
+
+    raf = requestAnimationFrame(tick)
+
+    const pause = () => { paused = true }
+    const resume = () => {
+      paused = false
+      last = 0
+    }
+
+    wrap?.addEventListener('mouseenter', pause)
+    wrap?.addEventListener('mouseleave', resume)
+
+    return () => {
+      cancelAnimationFrame(raf)
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', measure)
+      wrap?.removeEventListener('mouseenter', pause)
+      wrap?.removeEventListener('mouseleave', resume)
+    }
+  }, [marqueeProducts.length])
+
   const go = (href) => {
     window.location.hash = href
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -176,6 +346,45 @@ export default function Home() {
         }
 
         /* ================================
+           IMAGE SKELETON + FADE-IN
+        ================================= */
+
+        .smart-img {
+          color: transparent; /* alt text flash aagama */
+        }
+
+        .smart-img:not(.is-loaded) {
+          background:
+            linear-gradient(
+              100deg,
+              rgba(23,63,42,.05) 20%,
+              rgba(163,125,43,.16) 50%,
+              rgba(23,63,42,.05) 80%
+            );
+          background-size: 200% 100%;
+          animation: imgShimmer 1.3s linear infinite;
+          border-radius: 14px;
+        }
+
+        .smart-img.is-loaded {
+          animation: imgFadeIn .5s ease both;
+        }
+
+        .smart-img.is-failed {
+          opacity: .25;
+        }
+
+        @keyframes imgShimmer {
+          from { background-position: 200% 0; }
+          to   { background-position: -200% 0; }
+        }
+
+        @keyframes imgFadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+
+        /* ================================
            3D ORBITAL PRODUCT SHOWCASE
         ================================= */
 
@@ -186,6 +395,7 @@ export default function Home() {
           min-height: 520px;
           margin-left: auto;
           perspective: 1600px;
+          -webkit-perspective: 1600px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -234,10 +444,13 @@ export default function Home() {
           width: 440px;
           height: 440px;
           transform-style: preserve-3d;
+          -webkit-transform-style: preserve-3d;
+          will-change: transform;
           animation: orbitalRotate 22s linear infinite;
         }
 
-        .orbit-system:hover {
+        .orbit-system:hover,
+        .orbit-system:hover .orbit-product-card {
           animation-play-state: paused;
         }
 
@@ -250,6 +463,7 @@ export default function Home() {
           width: 170px;
           height: 225px;
           transform-style: preserve-3d;
+          -webkit-transform-style: preserve-3d;
           transform:
             translate(-50%, -50%)
             rotateY(var(--angle))
@@ -257,6 +471,7 @@ export default function Home() {
             rotateY(calc(var(--angle) * -1));
         }
 
+        /* Card always faces the viewer: counter-rotates against the orbit */
         .orbit-product-card {
           position: relative;
           width: 100%;
@@ -277,8 +492,12 @@ export default function Home() {
             0 25px 60px rgba(46,54,39,.14),
             inset 0 1px 0 rgba(255,255,255,.9);
           backdrop-filter: blur(12px);
-          transform: rotateY(calc(var(--angle) * -1));
-          transition: .5s ease;
+          -webkit-backdrop-filter: blur(12px);
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          will-change: transform;
+          transform: rotateX(-4deg);
+          animation: orbitalCounter 22s linear infinite;
         }
 
         .orbit-product-card::before {
@@ -297,7 +516,7 @@ export default function Home() {
           position: relative;
           z-index: 2;
           filter: drop-shadow(0 18px 15px rgba(35,43,32,.18));
-          transition: .5s ease;
+          transition: transform .5s ease;
         }
 
         .orbit-product:hover img {
@@ -338,39 +557,32 @@ export default function Home() {
           z-index: 3;
         }
 
-     .orbital-center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
+        .orbital-center {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 155px;
+          height: 155px;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          background:
+            radial-gradient(
+              circle at 35% 30%,
+              #346c4b,
+              #173f2a 65%
+            );
+          box-shadow:
+            0 30px 70px rgba(23, 63, 42, .28),
+            inset 0 1px 0 rgba(255, 255, 255, .2);
+          z-index: 20;
+          color: #f7f0dc;
+          pointer-events: none;
+        }
 
-  width: 155px;
-  height: 155px;
-
-  transform: translate(-50%, -50%);
-
-  border-radius: 50%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-
-  background:
-    radial-gradient(
-      circle at 35% 30%,
-      #346c4b,
-      #173f2a 65%
-    );
-
-  box-shadow:
-    0 30px 70px rgba(23, 63, 42, .28),
-    inset 0 1px 0 rgba(255, 255, 255, .2);
-
-  z-index: 20;
-
-  color: #f7f0dc;
-  pointer-events: none;
-}
         .orbital-center::before {
           content: "";
           position: absolute;
@@ -423,20 +635,71 @@ export default function Home() {
           }
         }
 
+        /* exact opposite of orbitalRotate, so cards never show mirrored */
+        @keyframes orbitalCounter {
+          from {
+            transform: rotateX(-4deg) rotateY(0deg);
+          }
+          to {
+            transform: rotateX(-4deg) rotateY(-360deg);
+          }
+        }
+
+        /* ===== Brands that move: auto-scroll marquee (JS driven) ===== */
+    .featured-section .mini-marquee .mini-track {
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  width: max-content !important;
+  min-width: max-content !important;
+  gap: 0 !important;
+  animation: none !important;
+  will-change: transform;
+}
+
+.featured-section .mini-marquee .mini-track > .mini-card,
+.featured-section .mini-marquee .mini-track > .mini-card:not(:first-child),
+.featured-section .mini-marquee .mini-track > .mini-card:nth-child(n) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 0 0 auto !important;
+  width: 260px !important;
+  max-width: none !important;
+  margin: 0 18px 0 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  content-visibility: visible !important;
+  contain: none !important;
+}
+
+@media (max-width: 650px) {
+  .featured-section .mini-marquee .mini-track > .mini-card,
+  .featured-section .mini-marquee .mini-track > .mini-card:nth-child(n) {
+    width: 150px !important;
+    margin-right: 10px !important;
+  }
+}
+
         @media (max-width: 1000px) {
           .premium-hero {
             grid-template-columns: 1fr;
-            padding-top: 55px;
+            align-items: start;
+            min-height: auto;
+            padding-top: 30px;
+            row-gap: 10px;
+          }
+
+          /* orbit first, text keela */
+          .orbital-stage {
+            order: -1;
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
           }
 
           .premium-copy {
+            order: 1;
             max-width: 720px;
-          }
-
-          .orbital-stage {
-            width: 100%;
-            max-width: 700px;
-            margin: 10px auto 0;
           }
         }
 
@@ -464,8 +727,9 @@ export default function Home() {
           }
 
           .orbital-stage {
-            min-height: 420px;
-            height: 430px;
+            min-height: 400px;
+            height: 410px;
+            margin-top: 0;
           }
 
           .orbital-ring {
@@ -513,11 +777,18 @@ export default function Home() {
             transform: translateX(50%);
             white-space: nowrap;
           }
+
+          .mini-track .mini-card {
+            width: 220px !important;
+            margin-right: 14px !important;
+          }
         }
 
+        /* Reduced motion: orbit-a stop pannama very slow-a vachirukkom */
         @media (prefers-reduced-motion: reduce) {
-          .orbit-system {
-            animation: none;
+          .orbit-system,
+          .orbit-product-card {
+            animation-duration: 60s;
           }
 
           .premium-primary,
@@ -530,7 +801,7 @@ export default function Home() {
       <section className="premium-hero">
         <div className="premium-copy">
           <p className="premium-eyebrow">
-            THIRUPATHI AGENCY · MADURAI
+            THIRUPATHI AGENCIES · MADURAI
           </p>
 
           <h1 className="premium-title">
@@ -604,11 +875,7 @@ export default function Home() {
                       0{i + 1}
                     </span>
 
-                    <img
-                      src={p.image}
-                      alt={p.name}
-                      loading={i === 0 ? 'eager' : 'lazy'}
-                    />
+                    <SmartImg src={p.image} alt={p.name} w={400} eager />
 
                     <span className="orbit-name">
                       {p.name}
@@ -680,19 +947,25 @@ export default function Home() {
           </button>
         </div>
 
-        <div className="mini-rail">
-          {featured.map((p) => (
-            <div className="mini-card" key={p.id}>
-              <img src={p.image} alt={p.name} />
+        <div className="mini-marquee">
+  <div className="mini-track" ref={trackRef}>
+    {[...marqueeProducts, ...marqueeProducts].map((p, i) => (
+      <div
+        className="mini-card"
+        key={`${p.id}-${i}`}
+        aria-hidden={i >= marqueeProducts.length ? 'true' : undefined}
+      >
+        <SmartImg src={p.image} fallback={p.fallback} alt={p.name} w={300} eager />
 
-              <div>
-                <small>{p.brand}</small>
-                <strong>{p.name}</strong>
-                <span>{p.category}</span>
-              </div>
-            </div>
-          ))}
+        <div>
+          <small>{p.brand}</small>
+          <strong>{p.name}</strong>
+          <span>{p.category}</span>
         </div>
+      </div>
+    ))}
+  </div>
+</div>
       </section>
 
       <section className="cta-band">

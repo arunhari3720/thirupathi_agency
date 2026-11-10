@@ -34,7 +34,7 @@ export default function Navbar() {
           <button key={id} className={active === id ? 'active' : ''} onClick={() => go(id)}>{label}</button>
         ))}
       </nav>
-      <a className="nav-call" href="tel:+919876543210">+91 98765 43210</a>
+      <a className="nav-call" href="tel:+919790448985">+91 9790448985</a>
     </header>
   )
 }

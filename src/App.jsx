@@ -6,6 +6,7 @@ import Products from './pages/Products'
 import About from './pages/About'
 import WhyChoose from './pages/WhyChoose'
 import Contact from './pages/Contact'
+import { Helmet } from 'react-helmet-async'
 
 const routes = {
   '/': Home,
@@ -34,9 +35,11 @@ export default function App() {
 
   return (
     <div className="site-shell">
+      
       <Header path={path} />
       <main><Page /></main>
       <Footer />
+     
     </div>
   )
 }
