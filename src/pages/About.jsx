@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   motion,
   useReducedMotion,
@@ -403,6 +403,21 @@ function Reviews() {
    ========================================================= */
 
 export default function About() {
+  useEffect(() => {
+    const canonicalUrl = "https://thirupathiagencies.store/about";
+
+    let canonicalTag = document.querySelector('link[rel="canonical"]');
+
+    if (!canonicalTag) {
+      canonicalTag = document.createElement("link");
+      canonicalTag.setAttribute("rel", "canonical");
+      document.head.appendChild(canonicalTag);
+    }
+
+    canonicalTag.setAttribute("href", canonicalUrl);
+    document.title = "About Thirupathi Agencies | 10+ Years in Food Products & Distribution Across Madurai";
+  }, []);
+
   const stories = [
     {
       eyebrow: "OUR REACH",

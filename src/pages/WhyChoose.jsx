@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { products } from '../data/products'
 const EMBLEM =
@@ -21,6 +21,42 @@ const reasons = [
   'Long-term relationships',
 ]
 export default function WhyChoose() {
+  useEffect(() => {
+    const canonicalUrl = "https://thirupathiagencies.store/why-choose-us";
+
+    document.title =
+      "Why Choose Thirupathi Agencies | 10+ Years in Food Products & Distribution – Jaihindpuram, Madurai";
+
+    const description =
+      "Choose Thirupathi Agencies in Jaihindpuram, Madurai for food products and everyday essentials. Explore our complete product range, including RKG Arusuvai Masala and Masbadam, backed by 10+ years of distribution experience.";
+
+    let metaDescription = document.querySelector(
+      'meta[name="description"]'
+    );
+
+    if (!metaDescription) {
+      metaDescription = document.createElement("meta");
+      metaDescription.setAttribute("name", "description");
+      document.head.appendChild(metaDescription);
+    }
+
+    metaDescription.setAttribute("content", description);
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+
+    canonical.setAttribute("href", canonicalUrl);
+
+    return () => {
+      canonical.setAttribute("href", "https://thirupathiagencies.store/");
+    };
+  }, []);
+
   return (
     <>
       {/* ================= HERO ================= */}
@@ -41,8 +77,9 @@ export default function WhyChoose() {
               <em>Businesses grow.</em>
             </h1>
             <p>
-              We connect trusted food and everyday-use brands
-              with the businesses that depend on them.
+              Thirupathi Agencies supports retailers and businesses in
+              Jaihindpuram, Madurai with trusted food products and everyday
+              essentials, backed by 10+ years of distribution experience.
             </p>
             <div className="hero-scroll">
               <span>SCROLL TO DISCOVER</span>
@@ -105,8 +142,10 @@ export default function WhyChoose() {
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.2 }}
           >
-            But a good product only matters when it reaches
-            the right business, at the right time.
+            From Jaihindpuram to businesses across Madurai, we help good
+            products reach the right shelves at the right time. Our range
+            includes RKG Arusuvai Masala, Masbadam and many other food and
+            everyday-use products.
           </motion.p>
         </div>
         {/* ================= PRODUCT ORBIT ================= */}
@@ -238,9 +277,9 @@ export default function WhyChoose() {
               <em>move products.</em>
             </h3>
             <p>
-              We create the connection between trusted brands
-              and the retailers, businesses and customers who
-              rely on them.
+              We create the connection between trusted brands and the
+              retailers, businesses and customers across Jaihindpuram and
+              Madurai who rely on a dependable supply partner.
             </p>
           </motion.div>
         </section>
@@ -276,6 +315,34 @@ export default function WhyChoose() {
             </motion.div>
           ))}
         </section>
+        {/* ================= COMPLETE PRODUCT RANGE FOR SEO ================= */}
+        <section className="why-product-directory" aria-labelledby="why-product-directory-title">
+          <div className="why-product-directory-inner">
+            <span className="why-product-directory-eyebrow">
+              OUR PRODUCT RANGE · JAIHINDPURAM, MADURAI
+            </span>
+            <h2 id="why-product-directory-title">
+              Products available through <em>Thirupathi Agencies.</em>
+            </h2>
+            <p>
+              Explore the food products and everyday essentials listed in our
+              catalogue. Thirupathi Agencies serves retailers and businesses
+              in Jaihindpuram, Madurai, with a product range that includes
+              RKG Arusuvai Masala and Masbadam.
+            </p>
+            <ul className="why-product-name-list">
+              {products
+                .filter((product) => product?.name)
+                .map((product) => (
+                  <li key={product.id || `${product.brand}-${product.name}`}>
+                    <strong>{product.name}</strong>
+                    {product.brand && <span>{product.brand}</span>}
+                  </li>
+                ))}
+            </ul>
+          </div>
+        </section>
+
         {/* ================= FINAL ================= */}
         <section className="why-final">
           <motion.div
@@ -306,10 +373,11 @@ export default function WhyChoose() {
               <em>a supplier.</em>
             </h2>
             <p>
-              It needs a reliable partner behind the shelf.
+              It needs a reliable distribution partner in Jaihindpuram,
+              Madurai, who understands the products behind every shelf.
             </p>
             <div className="final-brand">
-              THIRUPATHI AGENCY
+              THIRUPATHI AGENCIES
             </div>
           </motion.div>
         </section>
@@ -876,6 +944,77 @@ export default function WhyChoose() {
           font-weight: 500;
           letter-spacing: -0.025em;
         }
+        /* COMPLETE PRODUCT DIRECTORY */
+        .why-product-directory {
+          padding: 110px 6%;
+          background: #fbf9f2;
+          color: #172018;
+        }
+
+        .why-product-directory-inner {
+          width: min(1200px, 88%);
+          margin: auto;
+        }
+
+        .why-product-directory-eyebrow {
+          color: #a47b2b;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.25em;
+        }
+
+        .why-product-directory h2 {
+          max-width: 850px;
+          margin: 22px 0;
+          font-size: clamp(38px, 5vw, 68px);
+          line-height: 0.98;
+          letter-spacing: -0.055em;
+          font-weight: 600;
+        }
+
+        .why-product-directory h2 em {
+          font-family: Georgia, serif;
+          font-weight: 400;
+        }
+
+        .why-product-directory p {
+          max-width: 760px;
+          margin: 0 0 38px;
+          color: #686d65;
+          font-size: 16px;
+          line-height: 1.8;
+        }
+
+        .why-product-name-list {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 0 28px;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+          border-top: 1px solid rgba(23, 32, 24, 0.12);
+        }
+
+        .why-product-name-list li {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          padding: 16px 0;
+          border-bottom: 1px solid rgba(23, 32, 24, 0.10);
+        }
+
+        .why-product-name-list strong {
+          color: #172018;
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .why-product-name-list span {
+          color: #858a82;
+          font-size: 11px;
+          letter-spacing: 0.06em;
+        }
+
         /* FINAL */
         .why-final {
           min-height: 100vh;
@@ -916,6 +1055,19 @@ export default function WhyChoose() {
         }
         /* ================= MOBILE ================= */
         @media (max-width: 768px) {
+          .why-product-directory {
+            padding: 80px 0;
+          }
+
+          .why-product-directory-inner {
+            width: 88%;
+          }
+
+          .why-product-name-list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0 16px;
+          }
+
           .why-hero {
             min-height: auto;
             padding: 80px 0 55px;

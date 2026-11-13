@@ -1,45 +1,60 @@
-import React, { useEffect, useState } from 'react'
+
+import React, { useEffect } from 'react'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+} from 'react-router-dom'
+
 import Header from './components/Header'
 import Footer from './components/Footer'
+
 import Home from './pages/Home'
 import Products from './pages/Products'
 import About from './pages/About'
 import WhyChoose from './pages/WhyChoose'
 import Contact from './pages/Contact'
-import { Helmet } from 'react-helmet-async'
 
-const routes = {
-  '/': Home,
-  '/products': Products,
-  '/about': About,
-  '/why-choose-us': WhyChoose,
-  '/contact': Contact,
-}
-
-function getPath() {
-  const hash = window.location.hash.replace(/^#/, '')
-  return hash || '/'
-}
-
-export default function App() {
-  const [path, setPath] = useState(getPath)
+function ScrollToTop() {
+  const { pathname } = useLocation()
 
   useEffect(() => {
-    const onHash = () => setPath(getPath())
-    window.addEventListener('hashchange', onHash)
     window.scrollTo({ top: 0, behavior: 'instant' })
-    return () => window.removeEventListener('hashchange', onHash)
-  }, [path])
+  }, [pathname])
 
-  const Page = routes[path] || Home
+  return null
+}
+
+function SiteLayout() {
+  const location = useLocation()
+  const path = location.pathname
 
   return (
     <div className="site-shell">
-      
+      <ScrollToTop />
+
       <Header path={path} />
-      <main><Page /></main>
+
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/why-choose-us" element={<WhyChoose />} />
+          <Route path="/contact" element={<Contact />} />
+        </Routes>
+      </main>
+
       <Footer />
-     
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <SiteLayout />
+    </BrowserRouter>
   )
 }

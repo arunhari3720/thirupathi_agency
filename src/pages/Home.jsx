@@ -71,7 +71,17 @@ export default function Home() {
   const trackRef = useRef(null)
 
   useEffect(() => {
-    document.title = 'Thirupathi Agency | Quality Products & Trusted Supply'
+    document.title = 'Thirupathi Agencies | Madurai Food Products Distributor | 10+ Years'
+
+    const description =
+      'Thirupathi Agencies is a Madurai-based food products distributor with 10+ years of experience, supplying trusted brands including RKG Arusuvai Masala and Masbadam to retailers and businesses.'
+    let metaDescription = document.querySelector('meta[name="description"]')
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta')
+      metaDescription.setAttribute('name', 'description')
+      document.head.appendChild(metaDescription)
+    }
+    metaDescription.setAttribute('content', description)
 
     let canonical = document.querySelector('link[rel="canonical"]')
 
@@ -83,7 +93,7 @@ export default function Home() {
 
     canonical.setAttribute(
       'href',
-      'https://thirupathiagency.netlify.app/#/'
+      'https://thirupathiagencies.store'
     )
   }, [])
 
@@ -801,7 +811,7 @@ export default function Home() {
       <section className="premium-hero">
         <div className="premium-copy">
           <p className="premium-eyebrow">
-            THIRUPATHI AGENCIES · MADURAI
+            THIRUPATHI AGENCIES · MADURAI · 10+ YEARS
           </p>
 
           <h1 className="premium-title">
@@ -810,9 +820,10 @@ export default function Home() {
           </h1>
 
           <p className="premium-description">
-            A professionally curated distribution portfolio connecting
-            trusted food, home-care, wellness and everyday brands with
-            retailers and businesses across the region.
+            Thirupathi Agencies is a Madurai-based food products distributor
+            with 10+ years of experience. We supply trusted brands including
+            RKG Arusuvai Masala and Masbadam, along with food, home-care and
+            everyday essentials for retailers and businesses across Madurai.
           </p>
 
           <div className="premium-actions">
@@ -833,8 +844,8 @@ export default function Home() {
 
           <div className="premium-stats">
             <div className="premium-stat">
-              <strong>07+</strong>
-              <span>Brand categories</span>
+              <strong>10+</strong>
+              <span>Years of experience</span>
             </div>
 
             <div className="premium-stat">
@@ -875,7 +886,7 @@ export default function Home() {
                       0{i + 1}
                     </span>
 
-                    <SmartImg src={p.image} alt={p.name} w={400} eager />
+                    <SmartImg src={p.image} alt={`${p.brand} ${p.name} - Thirupathi Agencies Madurai`} w={400} eager />
 
                     <span className="orbit-name">
                       {p.name}
@@ -914,11 +925,12 @@ export default function Home() {
 
         <div>
           <p>
-            Thirupathi Agency is designed as a modern distribution
-            partner — clean, premium and easy for retailers to
-            understand. Browse the catalogue by brand, discover
-            the agency story, and contact the team for trade or
-            bulk requirements.
+            With 10+ years of experience, Thirupathi Agencies supports
+            retailers and businesses across Madurai with reliable food
+            product distribution. Our portfolio includes recognised names
+            such as RKG Arusuvai Masala and Masbadam, alongside other
+            everyday essentials. Explore our brands or contact us for
+            wholesale and bulk supply enquiries.
           </p>
 
           <button
@@ -955,7 +967,7 @@ export default function Home() {
         key={`${p.id}-${i}`}
         aria-hidden={i >= marqueeProducts.length ? 'true' : undefined}
       >
-        <SmartImg src={p.image} fallback={p.fallback} alt={p.name} w={300} eager />
+        <SmartImg src={p.image} fallback={p.fallback} alt={`${p.brand} ${p.name} - Thirupathi Agencies Madurai`} w={300} eager />
 
         <div>
           <small>{p.brand}</small>
