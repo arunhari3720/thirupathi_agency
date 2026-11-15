@@ -47,8 +47,7 @@ img {
   display: block;
 }
 .site-shell {
-  overflow: hidden;
-}
+overflow: clip;     }
 .header {
   height: 82px;
   position: sticky;
