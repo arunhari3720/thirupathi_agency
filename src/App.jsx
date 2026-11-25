@@ -15,6 +15,10 @@ import Products from './pages/Products'
 import About from './pages/About'
 import WhyChoose from './pages/WhyChoose'
 import Contact from './pages/Contact'
+import Cart from './components/checkoutproducts/Products'
+
+
+import { trackPageView } from './analytics/analytics'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -26,6 +30,19 @@ function ScrollToTop() {
   return null
 }
 
+// Google Analytics Page Tracking
+function AnalyticsTracker() {
+  const location = useLocation()
+
+  useEffect(() => {
+    trackPageView(
+      location.pathname + location.search
+    )
+  }, [location.pathname, location.search])
+
+  return null
+}
+
 function SiteLayout() {
   const location = useLocation()
   const path = location.pathname
@@ -33,16 +50,17 @@ function SiteLayout() {
   return (
     <div className="site-shell">
       <ScrollToTop />
+      <AnalyticsTracker />
 
       <Header path={path} />
-
       <main>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Cart />} />
           <Route path="/about" element={<About />} />
           <Route path="/why-choose-us" element={<WhyChoose />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/cart" element={<Cart />} />
         </Routes>
       </main>
 
